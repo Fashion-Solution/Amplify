@@ -5,6 +5,8 @@
       <map>
         <entry key="..\:/AwsMembershipEx-master/app/src/main/res/layout/activity_authentication.xml" value="0.1" />
         <entry key="..\:/AwsMembershipEx-master/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="..\:/AwsMembershipEx-master/app/src/main/res/layout/activity_ok.xml" value="0.25" />
+        <entry key="..\:/AwsMembershipEx-master/app/src/main/res/layout/activity_sign_up.xml" value="0.25" />
       </map>
     </option>
   </component>
