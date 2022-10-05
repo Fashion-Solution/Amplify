@@ -2,6 +2,8 @@ package org.techtown.awsmembership
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -11,10 +13,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.client.Callback
 import com.amazonaws.mobile.client.results.SignUpResult
+import java.util.*
 
 
 class SignUpActivity : AppCompatActivity() {
-    var TAG: String = AuthenticationActivity::class.java.getSimpleName()
+    var TAG = AuthenticationActivity::class.java.simpleName
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
@@ -49,12 +52,11 @@ class SignUpActivity : AppCompatActivity() {
                             )
                             if (!signUpResult.confirmationState) {
                                 val details = signUpResult.userCodeDeliveryDetails
-                                Toast.makeText(
-                                    applicationContext,
-                                    "인증 메일을 보냈습니다.: " + details.destination,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-
+                                Toast.makeText(applicationContext, "인증 메일을 보냈습니다.: " + details.destination, Toast.LENGTH_SHORT).show()
+                                Log.d(
+                                    TAG,
+                                    "yayayayayayaya"
+                                )
                                 // 이메일에 문제가 없으면 인증 코드 창으로 이동
                                 val i = Intent(this@SignUpActivity, OkActivity::class.java)
                                 i.putExtra("email", username) // username을 인증 코드 창에서 사용하기 위해
@@ -62,11 +64,7 @@ class SignUpActivity : AppCompatActivity() {
                                 finish()
                             } else {
                                 // 인증 코드 창으로 이동
-                                Toast.makeText(
-                                    applicationContext,
-                                    "Sign-up done.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toast.makeText(applicationContext, "Sign-up done.", Toast.LENGTH_SHORT).show()
                                 Log.e(TAG, "Sddd")
                             }
                         }
@@ -74,26 +72,40 @@ class SignUpActivity : AppCompatActivity() {
 
                     override fun onError(e: Exception) {
                         Log.e(TAG, "Sign-up error", e)
+                        when {
+                            name.length <= 1 -> {
+                                errorMessage("이름을 정확히 입력하세요.")
+                            }
+                            e.message!!.contains("An account with the given email already exists.") -> {
+                                errorMessage("주어진 이메일을 가진 계정이 이미 존재합니다.")
+                            }
+                            e.message!!.contains("Value at 'username' failed to satisfy constraint") -> {
+                                errorMessage("이메일을 입력해주세요.")
+                            }
+                            e.message!!.contains("Invalid email address format.") -> {
+                                errorMessage("잘못된 이메일 주소 형식입니다.")
+                            }
+                            e.message!!.contains("Value at 'password' failed to satisfy constraint") -> {
+                                errorMessage("비밀번호를 입력해주세요")
+                            }
+                            e.message!!.contains("Password did not conform with policy: Password not long enough") -> {
+                                errorMessage("비밀번호는 8자 이상이어야 하며 특수 문자를 반드시 포함해야 합니다.")
+                            }
+                        }
                     }
                 })
         }
     }
 
-    // 뒤로가기 2번 눌러야 종료
-    private val FINISH_INTERVAL_TIME: Long = 1000
-    private var backPressedTime: Long = 0
     override fun onBackPressed() {
-        val tempTime = System.currentTimeMillis()
-        val intervalTime = tempTime - backPressedTime
+        val i = Intent(this@SignUpActivity, AuthenticationActivity::class.java)
+        startActivity(i)
+        finish()
+    }
 
-        // 뒤로 가기 할 경우 AuthActivity 화면으로 이동
-        if (0 <= intervalTime && FINISH_INTERVAL_TIME >= intervalTime) {
-            val i = Intent(this@SignUpActivity, AuthenticationActivity::class.java)
-            startActivity(i)
-            finish()
-        } else {
-            backPressedTime = tempTime
-            Toast.makeText(applicationContext, "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
-        }
+    // 에러 메시지
+    fun errorMessage(message: String?) {
+        val mHandler = Handler(Looper.getMainLooper())
+        mHandler.post { Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show() }
     }
 }
